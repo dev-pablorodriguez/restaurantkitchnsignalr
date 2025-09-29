@@ -18,7 +18,8 @@
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
-        connection.on("ReceiveMessage", (user, message) => {
+        connection.on("ReceiveOrders", (orders) => {
+		console.log(orders);
             const li = document.createElement("li");
             li.textContent = `${user}: ${message}`;
             document.getElementById("messagesList").appendChild(li);
@@ -26,8 +27,13 @@
 
         async function start() {
             try {
-                await connection.start();
-                console.log("Conectado a SignalR");
+                // Start connection
+				connection.start().then(() => {
+					console.log("Conectado a SignalR");
+					connection.invoke("OnLoad")
+				}).catch(function (err) {
+					return console.error(err.toString());
+				});
             } catch (err) {
                 console.error(err);
                 setTimeout(start, 5000);
