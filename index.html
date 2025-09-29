@@ -14,7 +14,7 @@
 
     <script>
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:7251//orderHub") // Asegúrate que esta ruta coincida con la del Hub en tu servidor
+            .withUrl("https://resturantsignalr.azurewebsites.net/orderHub") // Asegúrate que esta ruta coincida con la del Hub en tu servidor
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
