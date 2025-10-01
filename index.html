@@ -81,7 +81,7 @@
 	const connection = new signalR.HubConnectionBuilder()
 		.withUrl("https://resturantsignalr.azurewebsites.net/orderHub")
 		.configureLogging(signalR.LogLevel.Information)
-		.build
+		.build();
 
 	function renderCards(orders) {
 		if(!orders) return;
@@ -105,6 +105,7 @@
 		
 		document.getElementById("card-container").innerHTML  = html;
 	}
+
 	<!-- const orders = [ -->
 	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'CREATED'}, -->
 	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'COMPLETED'}, -->
