@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SignalR Chat</title>
+    <title>Restaurant Kitchen</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 	<style>
 	body {
@@ -87,8 +87,10 @@
 		if(!orders) return;
 		let html = '';
 		orders.forEach(i => {
-			const cardButton = i.Status !== 'COMPLETED' ? '<button class="btn-base btn-primary">Mark as complete</button>'
-			: '<button class="btn-base btn-success-disabled">Completed</button>';
+			const cardButton = i.Status !== 'COMPLETED' ?
+			`<button class="btn-base btn-primary" data-id="${i.Id}" onclick="markAsComplete(this)">Mark as complete</button>`
+			:
+			'<button class="btn-base btn-success-disabled">Completed</button>';
 			
 			html += `
 				<div class="card">
@@ -119,6 +121,11 @@
 		const orders = JSON.parse(ordersJson);
 		renderCards(orders);
 	});
+	
+	function markAsComplete(btn) {
+		const orderId = btn.getAttribute("data-id");
+		connection.invoke("CompleteOrder", orderId);
+	}
 
 	async function start() {
 		try {
