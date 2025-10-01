@@ -3,51 +3,138 @@
 <head>
     <title>SignalR Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+	<style>
+	body {
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+      background-color: #E6E6E6;
+    }
+
+    .card-container {
+      display: flex;
+      flex-wrap: wrap; /* Permite que las cards bajen cuando no hay espacio */
+      gap: 20px; /* Espacio entre cards */
+      justify-content: center; /* Centra las cards horizontalmente */
+    }
+
+    .card {
+      width: 250px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      background-color: white;
+    }
+
+    .card-header {
+      background-color: #007bff;
+      color: white;
+      padding: 12px;
+      font-size: 1.1em;
+      font-weight: bold;
+    }
+
+    .card-body {
+      padding: 16px;
+      text-align: center;
+    }
+	.btn-base {
+      display: inline-block;
+      padding: 8px 16px;
+      font-size: 0.9em;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-right: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-success-disabled {
+      background-color: #28a745;
+      color: #fff;
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+	</style>
 </head>
 <body>
-    <h2>SignalR Chat</h2>
-    <input type="text" id="userInput" placeholder="Tu nombre" />
-    <input type="text" id="messageInput" placeholder="Escribe un mensaje" />
-    <button onclick="sendMessage()">Enviar</button>
+    <h2>Orders</h2>
+	
+    <div id="card-container" class="card-container">
+	</div>
+  
 
-    <ul id="messagesList"></ul>
+	<script>
+	const connection = new signalR.HubConnectionBuilder()
+		.withUrl("https://resturantsignalr.azurewebsites.net/orderHub")
+		.configureLogging(signalR.LogLevel.Information)
+		.build
 
-    <script>
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://resturantsignalr.azurewebsites.net/orderHub") // Asegúrate que esta ruta coincida con la del Hub en tu servidor
-            .configureLogging(signalR.LogLevel.Information)
-            .build();
+	function renderCards(orders) {
+		if(!orders) return;
+		let html = '';
+		orders.forEach(i => {
+			const cardButton = i.Status !== 'COMPLETED' ? '<button class="btn-base btn-primary">Mark as complete</button>'
+			: '<button class="btn-base btn-success-disabled">Completed</button>';
+			
+			html += `
+				<div class="card">
+					<div class="card-header">${ i.Title }</div>
+					<div class="card-body">
+						<p>${ i.Description }</p>
+						<p>Quantity: ${ i.Quantity }</p>
+						${ cardButton }
+					</div>
+				</div>
+			`;
+		});
+		
+		
+		document.getElementById("card-container").innerHTML  = html;
+	}
+	<!-- const orders = [ -->
+	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'CREATED'}, -->
+	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'COMPLETED'}, -->
+	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'COMPLETED'}, -->
+	<!-- { Title: 'hey', Description: 'hey there Im using wsp', Quantity: 4, Status: 'COMPLETED'}, -->
+	<!-- ]; -->
+	<!-- renderCards(orders); -->
+	
 
-        connection.on("ReceiveOrders", (orders) => {
-		console.log(orders);
-            const li = document.createElement("li");
-            li.textContent = `${user}: ${message}`;
-            document.getElementById("messagesList").appendChild(li);
-        });
+	connection.on("ReceiveOrders", (ordersJson) => {
+		const orders = JSON.parse(ordersJson);
+		renderCards(orders);
+	});
 
-        async function start() {
-            try {
-                // Start connection
-				connection.start().then(() => {
-					console.log("Conectado a SignalR");
-					connection.invoke("OnLoad")
-				}).catch(function (err) {
-					return console.error(err.toString());
-				});
-            } catch (err) {
-                console.error(err);
-                setTimeout(start, 5000);
-            }
-        }
+	async function start() {
+		try {
+			connection.start().then(() => {
+				console.log("Connected to SignalR");
+				connection.invoke("OnLoad");
+			}).catch(function (err) {
+				return console.error(err.toString());
+			});
+		} catch (err) {
+			console.error(err);
+			setTimeout(start, 5000);
+		}
+	}
 
-        connection.onclose(start);
-        start();
-
-        function sendMessage() {
-            const user = document.getElementById("userInput").value;
-            const message = document.getElementById("messageInput").value;
-            connection.invoke("SendMessage", user, message).catch(err => console.error(err));
-        }
-    </script>
+	connection.onclose(start);
+	start();
+	</script>
 </body>
 </html>
